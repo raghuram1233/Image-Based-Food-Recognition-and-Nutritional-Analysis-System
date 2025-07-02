@@ -1,0 +1,17 @@
+# Core Machine Learning and Computer Vision
+tensorflow>=2.8.0
+opencv-python>=4.5.0
+numpy>=1.21.0
+
+# Scientific Computing
+scipy>=1.7.0
+
+# Computer Vision Utilities
+imutils>=0.5.4
+
+# Data Visualization
+matplotlib>=3.5.0
+
+# Jupyter Notebook Support
+jupyter>=1.0.0
+ipykernel>=6.0.0
