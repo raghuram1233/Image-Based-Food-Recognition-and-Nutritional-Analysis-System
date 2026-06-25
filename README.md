@@ -15,34 +15,22 @@ testable, side-effect-free core logic.
 ## Project structure
 
 ```
-Prof_Project/
+visionkit/
 ├── pyproject.toml            # packaging, dependencies, console scripts, ruff config
 ├── requirements.txt          # convenience mirror of pyproject deps
 ├── src/visionkit/
+│   ├── __init__.py           # package version & exports
 │   ├── paths.py              # default project paths (all CLI-overridable)
 │   ├── logging_utils.py      # centralised logging
-│   ├── measure/              # object dimension measurement
-│   │   ├── core.py           # pure measurement algorithm (no I/O, no windows)
-│   │   └── cli.py            # `measure-object` CLI
-│   ├── classify/             # fruit classification
-│   │   ├── labels.py         # persisted class-label metadata (labels.json)
-│   │   ├── data.py           # tf.data dataset pipeline
-│   │   ├── model.py          # MobileNetV2 transfer model + original CNN
-│   │   ├── train.py          # reproducible training pipeline
-│   │   ├── infer.py          # FruitClassifier inference wrapper
-│   │   └── cli.py            # `fruit-classify` and `fruit-train` CLIs
-│   └── nutrition/            # food volume + nutrition estimation
-│       ├── volume.py         # pure ellipsoid volume estimator
-│       ├── database.py       # built-in nutrition table loader
-│       ├── estimate.py       # orchestrator: image -> FoodEstimate
-│       ├── cli.py            # `food-estimate` CLI
-│       └── data/nutrition.json  # per-food density / shape / per-100g nutrients
+│   ├── app.py                # Flask web UI
+│   ├── measure.py            # object dimension measurement (logic + CLI)
+│   ├── classify.py           # fruit classification (datasets, models, training, inference, CLI)
+│   ├── nutrition.py          # food volume + nutrition estimation (volume, database, orchestrator, CLI)
+│   └── data/
+│       └── nutrition.json    # per-food density / shape / per-100g nutrients
 ├── models/
 │   ├── Fruits_model.h5            # legacy baseline model (128x128 CNN)
-│   ├── Fruits_model.labels.json   # sidecar: class order + input size + preprocessing
-│   ├── fruit_mobilenetv2.keras    # trained transfer-learning model (gitignored)
-│   └── fruit_mobilenetv2.labels.json
-├── notebooks/                # original Train.ipynb / Test.ipynb (reference)
+│   └── Fruits_model.labels.json   # sidecar: class order + input size + preprocessing
 ├── Data/{train,test}/<class> # dataset
 └── imgs/                     # sample images
 ```
@@ -110,7 +98,7 @@ fruit-classify imgs/apple.jpg --model models/fruit_mobilenetv2.keras --top 3
 Programmatic use:
 
 ```python
-from visionkit.classify.infer import FruitClassifier
+from visionkit.classify import FruitClassifier
 
 clf = FruitClassifier("models/fruit_mobilenetv2.keras")  # labels auto-detected
 pred = clf.predict("imgs/apple.jpg")[0]
@@ -172,7 +160,7 @@ How it works:
 - **Nutrition**: per-100g values scaled to the edible mass.
 
 Density, `shape_factor`, `edible_fraction`, and per-100g nutrients live in
-`src/visionkit/nutrition/data/nutrition.json` — add a row to support a new food.
+`src/visionkit/data/nutrition.json` — add a row to support a new food.
 
 Programmatic use:
 
