@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visionkit"
+version = "0.1.0"
+description = "Computer-vision toolkit: object dimension measurement and fruit image classification."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Prof Project" }]
+keywords = ["computer-vision", "opencv", "deep-learning", "image-classification", "measurement"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+
+# Base install is intentionally light so the measurement CLI works without
+# the heavy deep-learning stack. ML features live behind the `ml` extra.
+dependencies = [
+    "numpy>=1.23",
+    "opencv-python>=4.5",
+]
+
+[project.optional-dependencies]
+ml = [
+    "tensorflow>=2.12",
+    "pillow>=9.0",
+    "matplotlib>=3.5",
+]
+ui = [
+    "flask>=3.0",
+]
+dev = [
+    "ruff>=0.5",
+    "pytest>=7.0",
+]
+
+[project.scripts]
+measure-object = "visionkit.measure:main"
+fruit-classify = "visionkit.classify:classify_main"
+fruit-train = "visionkit.classify:train_main"
+food-estimate = "visionkit.nutrition:main"
+visionkit-app = "visionkit.app:app_main"
+
+[project.urls]
+Repository = "https://github.com/your-org/prof-project"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"visionkit.nutrition" = ["data/*.json"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src"]
+extend-exclude = ["notebooks", "Data"]
+
+[tool.ruff.lint]
+# A sensible, non-pedantic professional default.
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

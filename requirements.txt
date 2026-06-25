@@ -1,17 +1,16 @@
-# Core Machine Learning and Computer Vision
-tensorflow>=2.8.0
-opencv-python>=4.5.0
-numpy>=1.21.0
+# Dependencies are declared in pyproject.toml. This file is kept for
+# convenience / tooling that expects a requirements.txt.
+#
+# Recommended installs:
+#   pip install -e .            # measurement tool only (light)
+#   pip install -e ".[ml]"      # + fruit classification / training (TensorFlow)
+#   pip install -e ".[ml,dev]"  # + ruff / pytest for development
 
-# Scientific Computing
-scipy>=1.7.0
+# --- base (measurement) ---
+numpy>=1.23
+opencv-python>=4.5
 
-# Computer Vision Utilities
-imutils>=0.5.4
-
-# Data Visualization
-matplotlib>=3.5.0
-
-# Jupyter Notebook Support
-jupyter>=1.0.0
-ipykernel>=6.0.0
+# --- ml extra (classification + training) ---
+tensorflow>=2.12
+pillow>=9.0
+matplotlib>=3.5

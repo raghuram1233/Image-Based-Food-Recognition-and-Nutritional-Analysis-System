@@ -1,0 +1,86 @@
+{
+  "Apple": {
+    "density_g_per_cm3": 0.84,
+    "shape_factor": 0.85,
+    "edible_fraction": 0.90,
+    "per_100g": {
+      "calories_kcal": 52,
+      "carbohydrate_g": 13.8,
+      "sugar_g": 10.4,
+      "fiber_g": 2.4,
+      "protein_g": 0.3,
+      "fat_g": 0.2,
+      "vitamin_c_mg": 4.6
+    }
+  },
+  "Banana": {
+    "density_g_per_cm3": 0.94,
+    "shape_factor": 0.40,
+    "edible_fraction": 0.64,
+    "per_100g": {
+      "calories_kcal": 89,
+      "carbohydrate_g": 22.8,
+      "sugar_g": 12.2,
+      "fiber_g": 2.6,
+      "protein_g": 1.1,
+      "fat_g": 0.3,
+      "vitamin_c_mg": 8.7
+    }
+  },
+  "Mango": {
+    "density_g_per_cm3": 1.00,
+    "shape_factor": 0.75,
+    "edible_fraction": 0.68,
+    "per_100g": {
+      "calories_kcal": 60,
+      "carbohydrate_g": 15.0,
+      "sugar_g": 13.7,
+      "fiber_g": 1.6,
+      "protein_g": 0.8,
+      "fat_g": 0.4,
+      "vitamin_c_mg": 36.4
+    }
+  },
+  "Orange": {
+    "density_g_per_cm3": 0.87,
+    "shape_factor": 0.90,
+    "edible_fraction": 0.73,
+    "per_100g": {
+      "calories_kcal": 47,
+      "carbohydrate_g": 11.8,
+      "sugar_g": 9.4,
+      "fiber_g": 2.4,
+      "protein_g": 0.9,
+      "fat_g": 0.1,
+      "vitamin_c_mg": 53.2
+    }
+  },
+  "Pineapple": {
+    "density_g_per_cm3": 0.95,
+    "shape_factor": 0.55,
+    "edible_fraction": 0.50,
+    "per_100g": {
+      "calories_kcal": 50,
+      "carbohydrate_g": 13.1,
+      "sugar_g": 9.9,
+      "fiber_g": 1.4,
+      "protein_g": 0.5,
+      "fat_g": 0.1,
+      "vitamin_c_mg": 47.8
+    }
+  },
+  "_meta": {
+    "source": "USDA FoodData Central (approximate standard values, edible portion, raw)",
+    "note": "Density, shape_factor and edible_fraction are approximate literature/heuristic values. shape_factor = real fruit volume / bounding ellipsoid (pi/6 * w^2 * h). edible_fraction = edible portion after removing peel/core/pit. Tune per use case.",
+    "units": {
+      "density_g_per_cm3": "g/cm^3",
+      "calories_kcal": "kcal",
+      "carbohydrate_g": "g",
+      "sugar_g": "g",
+      "fiber_g": "g",
+      "protein_g": "g",
+      "fat_g": "g",
+      "vitamin_c_mg": "mg"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / lint / type caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Training outputs. The committed baseline (Fruits_model.h5) and the small
+# per-model *.labels.json sidecars are kept; large models and regenerated
+# metrics/curves are not. Commit a trained .keras with `git add -f` (or use
+# Git LFS) if you want to ship it.
+models/*.keras
+models/*.metrics.json
+models/*_curves.png
+logs/
+*.log
+
+# Local artifacts
+outputs/
+*.tmp

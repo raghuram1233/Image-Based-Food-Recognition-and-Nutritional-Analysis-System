@@ -1,289 +1,223 @@
-# Computer Vision Project
+# visionkit
 
-This repository contains two main computer vision applications: **Object Dimension Measurement** and **Fruit Classification**. The project combines traditional computer vision techniques with modern deep learning approaches to solve real-world problems.
+A small, professional computer-vision toolkit with two independent tools:
 
-## 📁 Project Structure
+1. **Object Dimension Measurement** — measure real-world object sizes from a
+   single image using a reference object for scale calibration (pure OpenCV).
+2. **Fruit Classification** — train and run a CNN image classifier for five
+   fruit classes (Apple, Banana, Mango, Orange, Pineapple), with transfer
+   learning from a pretrained MobileNetV2 backbone.
+
+The project is packaged as an installable Python package (`src/visionkit`) with
+console entry points, structured logging, configurable parameters, and clean,
+testable, side-effect-free core logic.
+
+## Project structure
 
 ```
 Prof_Project/
-├── main.py                 # Object dimension measurement script
-├── Train.ipynb            # Fruit classification model training notebook
-├── Test.ipynb             # Fruit classification testing notebook
-├── Fruits_model.h5        # Pre-trained CNN model for fruit classification
-├── requirements.txt       # Python dependencies
-├── Data/                  # Dataset directory
-│   ├── train/             # Training dataset
-│   │   ├── Apple/         # Apple training images
-│   │   ├── Banana/        # Banana training images
-│   │   ├── Mango/         # Mango training images
-│   │   ├── Orange/        # Orange training images
-│   │   └── Pineapple/     # Pineapple training images
-│   └── test/              # Testing dataset
-│       ├── Apple/         # Apple test images
-│       ├── Banana/        # Banana test images
-│       ├── Mango/         # Mango test images
-│       ├── Orange/        # Orange test images
-│       └── Pineapple/     # Pineapple test images
-├── imgs/                  # Sample images for testing
-│   ├── apple.jpg          # Sample fruit image
-│   └── test1.png          # Sample object measurement image
-└── README.md              # Project documentation
+├── pyproject.toml            # packaging, dependencies, console scripts, ruff config
+├── requirements.txt          # convenience mirror of pyproject deps
+├── src/visionkit/
+│   ├── paths.py              # default project paths (all CLI-overridable)
+│   ├── logging_utils.py      # centralised logging
+│   ├── measure/              # object dimension measurement
+│   │   ├── core.py           # pure measurement algorithm (no I/O, no windows)
+│   │   └── cli.py            # `measure-object` CLI
+│   ├── classify/             # fruit classification
+│   │   ├── labels.py         # persisted class-label metadata (labels.json)
+│   │   ├── data.py           # tf.data dataset pipeline
+│   │   ├── model.py          # MobileNetV2 transfer model + original CNN
+│   │   ├── train.py          # reproducible training pipeline
+│   │   ├── infer.py          # FruitClassifier inference wrapper
+│   │   └── cli.py            # `fruit-classify` and `fruit-train` CLIs
+│   └── nutrition/            # food volume + nutrition estimation
+│       ├── volume.py         # pure ellipsoid volume estimator
+│       ├── database.py       # built-in nutrition table loader
+│       ├── estimate.py       # orchestrator: image -> FoodEstimate
+│       ├── cli.py            # `food-estimate` CLI
+│       └── data/nutrition.json  # per-food density / shape / per-100g nutrients
+├── models/
+│   ├── Fruits_model.h5            # legacy baseline model (128x128 CNN)
+│   ├── Fruits_model.labels.json   # sidecar: class order + input size + preprocessing
+│   ├── fruit_mobilenetv2.keras    # trained transfer-learning model (gitignored)
+│   └── fruit_mobilenetv2.labels.json
+├── notebooks/                # original Train.ipynb / Test.ipynb (reference)
+├── Data/{train,test}/<class> # dataset
+└── imgs/                     # sample images
 ```
 
-## 🎯 Features
-
-### 1. Object Dimension Measurement (`main.py`)
-
-- Measures real-world dimensions of objects in images using computer vision
-- Implements edge detection, contour analysis, and perspective correction
-- Provides measurements in millimeters using a reference object for scale calibration
-- Automatic object detection with bounding box calculation
-- Real-time visualization of measurements overlaid on images
-
-### 2. Fruit Classification Model Training (`Train.ipynb`)
-
-- Complete CNN model training pipeline for fruit classification
-- Data loading and preprocessing from organized dataset structure
-- Model architecture design with Conv2D, MaxPooling, and Dropout layers
-- Training with data augmentation using ImageDataGenerator
-- Model evaluation and performance metrics
-- Model saving in HDF5 format for deployment
-
-### 3. Fruit Classification Testing (`Test.ipynb`)
-
-- Load and test the pre-trained fruit classification model
-- Real-time fruit classification with confidence scores
-- Supports 5 fruit categories: Apple, Banana, Pineapple, Mango, Orange
-- Image preprocessing and prediction pipeline
-- Visualization of results with predictions
-
-## 🛠️ Dependencies
-
-### Required Libraries
-
-The project uses the following Python libraries (see `requirements.txt` for specific versions):
+## Installation
 
 ```bash
-# Core Machine Learning and Computer Vision
-tensorflow>=2.8.0          # Deep learning framework
-opencv-python>=4.5.0       # Computer vision library
-numpy>=1.21.0              # Numerical computing
+# Measurement tool only (light: numpy + opencv)
+pip install -e .
 
-# Scientific Computing
-scipy>=1.7.0               # Scientific computing utilities
+# + Fruit classification & training (adds TensorFlow)
+pip install -e ".[ml]"
 
-# Computer Vision Utilities
-imutils>=0.5.4             # Computer vision convenience functions
-
-# Data Visualization
-matplotlib>=3.5.0          # Plotting and visualization
-
-# Jupyter Notebook Support
-jupyter>=1.0.0             # Jupyter notebook environment
-ipykernel>=6.0.0           # Jupyter kernel for Python
+# + development tools (ruff, pytest)
+pip install -e ".[ml,dev]"
 ```
 
-### Installation
+Python 3.10+ is required.
 
-Install all dependencies using pip:
+## Usage
+
+### Object dimension measurement
+
+The left-most detected object is used as the reference for scale calibration.
 
 ```bash
-pip install -r requirements.txt
+# Measure and print sizes (headless — no GUI needed)
+measure-object imgs/test1.png --ref-width 25 --scale 0.2
+
+# Save an annotated image
+measure-object imgs/test1.png --ref-width 25 --scale 0.2 -o measured.png
+
+# Show in a window (requires a desktop session)
+measure-object imgs/test1.png --show
 ```
 
-Or install individually:
+Key options: `--ref-width` (reference width in mm), `--scale` (resize factor —
+measurements are scale-invariant), `--min-area`, `--canny LOW HIGH`, `--blur`.
+
+Programmatic use:
+
+```python
+from visionkit.measure import MeasurementConfig, load_image, measure_objects
+
+image = load_image("imgs/test1.png")
+result = measure_objects(image, MeasurementConfig(ref_width_mm=25, scale=0.2))
+for obj in result.objects:
+    print(obj.width_mm, obj.height_mm, obj.is_reference)
+```
+
+### Fruit classification (inference)
+
+Each model carries a sidecar `<model>.labels.json` (class order + input size +
+preprocessing), which is auto-detected — so labels always match the model and
+are never hard-coded.
 
 ```bash
-pip install tensorflow opencv-python numpy scipy imutils matplotlib jupyter ipykernel
+# Default model is the committed baseline (models/Fruits_model.h5)
+fruit-classify imgs/apple.jpg
+
+# Use the trained transfer-learning model (auto-finds fruit_mobilenetv2.labels.json)
+fruit-classify imgs/apple.jpg --model models/fruit_mobilenetv2.keras --top 3
 ```
 
-## 🚀 Usage
+Programmatic use:
 
-### Object Dimension Measurement
+```python
+from visionkit.classify.infer import FruitClassifier
 
-1. **Configure the script:**
+clf = FruitClassifier("models/fruit_mobilenetv2.keras")  # labels auto-detected
+pred = clf.predict("imgs/apple.jpg")[0]
+print(pred.label, pred.confidence)      # e.g. "Apple" 0.999
+```
 
-   ```python
-   image_path = 'imgs/test1.png'    # Path to your image
-   ref_obj_width = 25               # Width of reference object in mm
-   ```
+### Training (transfer learning)
 
-2. **Run the measurement:**
+Run on a machine with TensorFlow installed (GPU strongly recommended):
 
-   ```bash
-   python main.py
-   ```
+```bash
+# Transfer learning from MobileNetV2 (default), then optional fine-tuning
+fruit-train --epochs 20 --fine-tune-epochs 10
 
-3. **How it works:**
-   - The script automatically detects objects in the image
-   - Uses the first detected object as a reference for scale calibration
-   - Calculates and displays dimensions for all other objects
-   - Shows measurements overlaid on the image
+# Reproduce the original small CNN for comparison
+fruit-train --backbone cnn --img-size 128 --epochs 50
+```
 
-### Fruit Classification Model Training
+Outputs are written next to the model, named after it: e.g.
+`fruit_mobilenetv2.keras`, `fruit_mobilenetv2.labels.json` (class order + input
+size + preprocessing), `fruit_mobilenetv2.metrics.json` (per-epoch history +
+test accuracy), and `fruit_mobilenetv2_curves.png`. Naming artefacts per model
+means training one model never overwrites another's metadata.
 
-1. **Open the training notebook:**
+### Food volume & nutrition
 
-   ```bash
-   jupyter notebook Train.ipynb
-   ```
+Estimate a food item's real-world volume and nutritional statistics from a
+single photo. This chains the tools above: measure → identify → volume → mass →
+nutrition.
 
-2. **Follow the notebook to:**
-   - Load and explore the fruit dataset
-   - Set up data generators with augmentation
-   - Build and compile the CNN model
-   - Train the model with validation
-   - Save the trained model as `Fruits_model.h5`
+**The photo must contain a reference object of known width placed left-most**
+(e.g. a coin) plus the food item — the reference calibrates pixels to
+millimetres (there is no way to recover real size from a 2D photo otherwise).
 
-### Fruit Classification Testing
+```bash
+food-estimate plate.jpg --ref-width 24 --model models/fruit_mobilenetv2.keras
+food-estimate plate.jpg --ref-width 24 --json result.json   # also dump JSON
+```
 
-1. **Open the testing notebook:**
+Example output:
 
-   ```bash
-   jupyter notebook Test.ipynb
-   ```
+```
+Food:           Apple  (98.8% confidence)
+Dimensions:     74 x 49 mm
+Est. volume:    120 cm3  (120 mL)
+Est. mass:      101 g  (whole)
+Edible mass:    90 g  (90% edible)
+Nutrition (for the edible portion):
+    Calories           47.1 kcal
+    Carbohydrate       12.5 g
+    ...
+```
 
-2. **Run the cells to:**
-   - Load the pre-trained model (`Fruits_model.h5`)
-   - Test on sample images
-   - Get classification results with confidence scores
+How it works:
 
-## 📊 Dataset Information
+- **Volume**: each item is modelled as an ellipsoid revolved about its vertical
+  axis, `V = shape_factor · (π/6) · width² · height` (depth assumed ≈ width).
+- **Mass**: `volume × density × edible_fraction`, so peel/core are excluded.
+- **Nutrition**: per-100g values scaled to the edible mass.
 
-### Fruit Classification Dataset
+Density, `shape_factor`, `edible_fraction`, and per-100g nutrients live in
+`src/visionkit/nutrition/data/nutrition.json` — add a row to support a new food.
 
-- **Total Classes:** 5 (Apple, Banana, Mango, Orange, Pineapple)
-- **Structure:** Organized in train/test split
-- **Format:** JPEG/PNG images
-- **Organization:** Each class has its own subdirectory
-- **Usage:** Training data for CNN model development
+Programmatic use:
 
-## 📊 Model Information
+```python
+from visionkit.nutrition import estimate_food
 
-### Fruit Classification Model
+est = estimate_food("plate.jpg", ref_width_mm=24,
+                    model_path="models/fruit_mobilenetv2.keras")
+print(est.fruit, est.volume_cm3, est.nutrients["calories_kcal"])
+```
 
-- **Architecture:** Convolutional Neural Network (CNN)
-- **Input Size:** 150×150×3 (RGB images)
-- **Classes:** 5 fruit categories (Apple, Banana, Mango, Orange, Pineapple)
-- **Format:** TensorFlow/Keras (.h5)
-- **Preprocessing:** Normalization (pixel values ÷ 255)
-- **Training Features:**
-  - Data augmentation with ImageDataGenerator
-  - Dropout layers for regularization
-  - Adam optimizer
-  - Sparse categorical crossentropy loss
+> **Approximate by design.** Volume comes from a single view plus literature
+> densities/edible-fractions, so treat the numbers as estimates. Accuracy could
+> be improved later with per-object cropping, contour/silhouette integration, a
+> depth camera, or a learned image→volume regressor.
 
-## 🔧 Technical Details
+## Why transfer learning?
 
-### Object Measurement Algorithm
+The original model was a small CNN trained from scratch on a few thousand
+images. Transfer learning from an ImageNet-pretrained MobileNetV2 backbone
+yields higher accuracy and far better robustness to lighting, background, and
+viewpoint, while training faster. The original CNN remains available via
+`--backbone cnn` for comparison.
 
-1. **Image Preprocessing:**
+A run of `fruit-train --epochs 20 --fine-tune-epochs 10` on the included dataset
+reached **~97.9% test accuracy** (CPU training, ~20 minutes). The legacy CNN
+baseline remains the committed default model; the trained MobileNetV2 model is
+gitignored (large) and used via `--model`.
 
-   - Resize for performance optimization (1/5 scale)
-   - Convert to grayscale
-   - Apply Gaussian blur for noise reduction
+## Development
 
-2. **Edge Detection:**
+```bash
+ruff check .      # lint
+ruff format .     # format
+```
 
-   - Canny edge detection with thresholds (50, 100)
-   - Morphological operations (dilation/erosion)
+## Notes & limitations
 
-3. **Object Detection:**
-
-   - Contour finding and filtering (minimum area: 100 pixels)
-   - Minimum area rectangle calculation
-   - Perspective correction and point ordering
-
-4. **Measurement Calculation:**
-   - Pixel-to-metric ratio calibration using reference object
-   - Euclidean distance calculation between midpoints
-   - Real-world dimension conversion to millimeters
-
-### Fruit Classification Pipeline
-
-1. **Data Loading:** Organized dataset structure with train/test splits
-2. **Data Augmentation:** Rotation, zoom, horizontal flip during training
-3. **Model Architecture:**
-   - Convolutional layers with ReLU activation
-   - MaxPooling for downsampling
-   - Dropout for regularization
-   - Dense layers for classification
-4. **Training:** Supervised learning with labeled fruit images
-5. **Inference:** Image preprocessing → Model prediction → Confidence scores
-
-## 📝 Configuration Parameters
-
-### Object Measurement
-
-- `ref_obj_width`: Reference object width in millimeters
-- `image_path`: Path to the input image
-- Canny edge detection thresholds: (50, 100)
-- Gaussian blur kernel: (7, 7)
-- Minimum contour area: 100 pixels
-
-### Fruit Classification
-
-- `IMG_SIZE`: 150 pixels (model input requirement)
-- Supported formats: JPG, PNG
-- Color space: RGB
-
-## 🎯 Use Cases
-
-### Object Dimension Measurement
-
-- Quality control in manufacturing and production
-- Dimensional analysis of parts and components
-- Educational demonstrations of computer vision techniques
-- Automated measurement systems for inventory
-- Research applications requiring precise measurements
-
-### Fruit Classification
-
-- Agricultural applications and crop sorting
-- Food industry quality control and classification
-- Educational machine learning and computer vision projects
-- Retail automation and inventory management
-- Research in agricultural technology and food processing
-
-## 📈 Getting Started
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-   cd Prof_Project
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **For Object Measurement:**
-
-   ```bash
-   python main.py
-   ```
-
-4. **For Fruit Classification:**
-   ```bash
-   jupyter notebook Train.ipynb  # To train a new model
-   jupyter notebook Test.ipynb   # To test existing model
-   ```
-
-## 🚨 Limitations
-
-### Object Measurement
-
-- Requires objects to be on a flat surface
-- Reference object must be clearly visible
-- Works best with well-defined edges
-- Lighting conditions affect accuracy
-
-### Fruit Classification
-
-- Limited to 5 predefined fruit types
-- Requires good lighting and clear images
-- Performance depends on image quality
-- May struggle with partially visible fruits
+- **Measurement** assumes objects lie on a flat plane, the reference object is
+  fully visible and left-most, and edges are well defined; lighting affects
+  accuracy.
+- **Classification** is limited to the five trained fruit classes; class names
+  and ordering come from each model's `*.labels.json` sidecar (never
+  hard-coded), so they always match the model that produced them.
+- **Volume & nutrition** require a reference object for scale and assume a
+  single food item per image from the five known classes. Volume uses an
+  ellipsoid approximation and nutrition uses approximate literature values
+  (`nutrition.json`), so results are estimates, not measurements.

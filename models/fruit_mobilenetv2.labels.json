@@ -1,0 +1,17 @@
+{
+  "classes": [
+    "Apple",
+    "Banana",
+    "Mango",
+    "Orange",
+    "Pineapple"
+  ],
+  "img_size": [
+    224,
+    224
+  ],
+  "preprocessing": "model",
+  "metadata": {
+    "backbone": "mobilenetv2"
+  }
+}

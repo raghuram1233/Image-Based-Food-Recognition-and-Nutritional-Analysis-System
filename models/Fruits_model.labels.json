@@ -1,0 +1,18 @@
+{
+  "classes": [
+    "Apple",
+    "Banana",
+    "Mango",
+    "Orange",
+    "Pineapple"
+  ],
+  "img_size": [
+    128,
+    128
+  ],
+  "preprocessing": "rescale",
+  "metadata": {
+    "backbone": "cnn",
+    "note": "Legacy baseline model from the original Train.ipynb (128x128, pixels rescaled by 1/255). Superseded by fruit_mobilenetv2.keras (transfer learning)."
+  }
+}
